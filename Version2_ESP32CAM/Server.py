@@ -32,7 +32,6 @@ control_value_generator = control_value_generator()
 
 @app.route('/post', methods=['POST'])
 def post():
-    print("client accessed")
     global SAMPLES_COUNT
     current_control_value = next(control_value_generator)
     # Get the image data
