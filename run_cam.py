@@ -1,12 +1,16 @@
 import cv2
+import sys
 
 # Section 1: Open the webcam
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("v4l2src device=/dev/video2 ! video/x-raw, width=640, height=480 ! videoconvert ! video/x-raw,format=BGR ! appsink")
 
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 512)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 512)
-cap.set(cv2.CAP_PROP_AUTO_WB, 0.0)
+
 cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.0)
+cap.set(cv2.CAP_PROP_EXPOSURE, 0.0)
+cap.set(cv2.CAP_PROP_AUTO_WB, 0.0)
+
 
 # Section 2: Check if the webcam opened successfully
 if not cap.isOpened():
