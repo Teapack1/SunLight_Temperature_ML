@@ -3,7 +3,6 @@ import cv2
 import os
 import numpy as np
 
-
 app = Flask(__name__)
 
 # Constants:
@@ -32,10 +31,14 @@ control_value_generator = control_value_generator()
 
 @app.route('/post', methods=['POST'])
 def post():
+    print("got there")
     global SAMPLES_COUNT
     current_control_value = next(control_value_generator)
     # Get the image data
     image_data = request.get_data()
+
+    with open("image.jpg", "wb") as f:
+        f.write(image_data)
 
     # Convert the image to a numpy array and then to a OpenCV format
     npimg = np.frombuffer(image_data, np.uint8)
@@ -56,6 +59,7 @@ def post():
     c = request.args.get('c')
 
     print(f"Sample: {SAMPLES_COUNT}/{TOTAL_SAMPLES_COUNT}, Control value: {current_control_value}, Received RGB data: r={r}, g={g}, b={b}, c={c}")
+
 
     # Save the data to the file
     with open(DATASET_FILE_NAME, 'a') as f:
