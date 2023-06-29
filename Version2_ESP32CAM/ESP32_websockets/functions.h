@@ -1,5 +1,6 @@
 #include <utility>
 
+
 void configESPCamera() {
   // Configure Camera parameters
  
@@ -106,4 +107,55 @@ std::pair<int, int> led_controller(float controlValue){
       coldBrightness = 255;
     }
     return std::make_pair(warmBrightness, coldBrightness);
+}
+
+
+
+void setup_led(){
+    // Setup channel 0
+    ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
+    ledcAttachPin(warmPin, LEDC_CHANNEL_0);
+
+    // Setup channel 1
+    ledcSetup(LEDC_CHANNEL_1, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
+    ledcAttachPin(coldPin, LEDC_CHANNEL_1);
+}
+
+void create_ap(bool AP, const char* ssid, const char* pass){
+
+  if (AP == true){
+    Serial.println("Setting up AP...");
+    WiFi.softAP(ssid, pass);
+    
+    IPAddress IP = WiFi.softAPIP();
+    
+    Serial.println("AP setup succesfully!");
+    Serial.println("");
+    Serial.print("AP IP address: ");
+    Serial.println(IP);
+
+    
+} else if (AP == false){
+    Serial.println("Connecting to AP...");
+    WiFi.begin(ssid, pass);
+    
+    while (WiFi.status() != WL_CONNECTED){
+      delay(500);     
+      Serial.print(".");
+    }
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.println("IP address: ");
+    Serial.println(WiFi.localIP());
+ }
+}
+
+void print_colors(int ct, int l, int r, int g, int b, int c){
+    Serial.print("Color Temp: "); Serial.print(ct, DEC); Serial.print(" K - ");
+    Serial.print("Lux: "); Serial.print(l, DEC); Serial.print(" - ");
+    Serial.print("R: "); Serial.print(r, DEC); Serial.print(" ");
+    Serial.print("G: "); Serial.print(g, DEC); Serial.print(" ");
+    Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
+    Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
+    Serial.println(" ");
 }

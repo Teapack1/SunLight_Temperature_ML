@@ -1,3 +1,7 @@
+//I2C
+#define I2C_SDA 14 // SDA Connected to GPIO 14
+#define I2C_SCL 15 // SCL Connected to GPIO 15
+
 //Pins
 #define LEDC_CHANNEL_0     LEDC_CHANNEL_0
 #define LEDC_CHANNEL_1     LEDC_CHANNEL_1
@@ -6,16 +10,9 @@
 #define warmPin 2
 #define coldPin 4
 
-void setup_led(){
-    // Setup channel 0
-    ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
-    ledcAttachPin(warmPin, LEDC_CHANNEL_0);
-
-    // Setup channel 1
-    ledcSetup(LEDC_CHANNEL_1, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
-    ledcAttachPin(coldPin, LEDC_CHANNEL_1);
-}
-
+// TCS LED light
+#define TCS34725_LED_PIN 13
+    
 //Camera
 #define PWDN_GPIO_NUM     32
 #define RESET_GPIO_NUM    -1
