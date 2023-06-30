@@ -1,3 +1,9 @@
+// Display
+#include <SPI.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+//Websocket libs
 #include <ArduinoWebsockets.h>
 #include <WiFi.h>
 #include <Wire.h>
@@ -17,26 +23,66 @@ unsigned int pictureCount = 0;
 
 const char* ssid = "Major"; //Enter SSID
 const char* password = "12345ABCDE"; //Enter Password
-const char* websockets_server_host = "10.0.0.221"; //Enter server address
+const char* websockets_server_host = "10.0.0.225"; //Enter server address
 const uint16_t websockets_server_port = 8765; // Enter server port
 
 using namespace websockets;
 WebsocketsClient client;
 TwoWire I2CSensors = TwoWire(0);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_300MS, TCS34725_GAIN_1X);
 
 
 void connect_server(const char* websockets_server_host, const uint16_t websockets_server_port){
     Serial.println("Connecting to Websocket server.");
     // try to connect to Websockets server
+    int i = 0;
+    display.clearDisplay();
     bool connected = false;
     while (!connected) {
-        connected = client.connect(websockets_server_host, websockets_server_port, "/");
+                        display.setTextSize(1);      // Normal 1:1 pixel scale
+                        display.setTextColor(SSD1306_WHITE); // Draw white text
+                        display.setCursor(0, 0);     // Start at top-left corner
+                        display.cp437(true);         // Use full 256 char 'Code Page 437' font
+                        display.println(F("Connecting ot Server"));
+                        char url[64];
+                        sprintf(url, websockets_server_host, websockets_server_port);
+                        display.println(F(url));
+                        display.display();
+
+              connected = client.connect(websockets_server_host, websockets_server_port, "/");
+                                     
+                      display.drawLine(0, 20, i, display.height()-1, SSD1306_WHITE);
+                      display.display(); // Update screen with each newly-drawn line
+                      delay(1);
+
+                      display.drawLine(0, 20, display.width()-1, i + 20, SSD1306_WHITE);
+                      display.display();
+                      delay(1);
+                i+=4;
+                
+                
         if(connected) {
             Serial.println("Connected!");
+
+                display.clearDisplay();
+              
+                display.setTextSize(2); // Draw 2X-scale text
+                display.setTextColor(SSD1306_WHITE);
+                display.setCursor(20, 30);
+                display.println(F("Connected"));
+                display.display();      // Show initial text
+                delay(1000);
+              
+                // Scroll in various directions, pausing in-between:
+
+                display.startscrollleft(0x00, 0x0F);
+                delay(2000);
+            
+                              
         } else {
             Serial.println("Not Connected!");
-            delay(1000); // Wait for a second before trying to connect again
+            delay(100); // Wait for a second before trying to connect again
         }
     }
 }
@@ -49,10 +95,22 @@ void setup() {
     
     // Disable brownout detector
    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
-    setup_led();
       Serial.begin(115200);
      I2CSensors.begin(I2C_SDA, I2C_SCL);
-     
+
+    //display init
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for(;;); // Don't proceed, loop forever
+  }else{
+    Serial.println("Display OK!");
+    display.clearDisplay();
+    
+    display.drawBitmap(0, 0, logo_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
+    display.display();
+ }
+
+  setup_led();
   create_ap(false, ssid, password);
 
       // Initialize the camera
@@ -153,10 +211,7 @@ void setup() {
                   Serial.println("Got a Pong!");
               }
           });
-
-        connect_server(websockets_server_host, websockets_server_port);
-    
-
+          
 }
 
 
@@ -168,6 +223,19 @@ void loop() {
     } else {
       connect_server(websockets_server_host, websockets_server_port);
        delay(100);
+       display.stopscroll();
+       /*
+        while (Serial.read() != 5) {
+
+            display.setTextSize(1);      // Normal 1:1 pixel scale
+            display.setTextColor(SSD1306_WHITE); // Draw white text
+            display.setCursor(100, 40);
+            Serial.println(F("Press"));
+            display.setCursor(30, 50);
+            Serial.println(F("read:" + Serial.read()));
+            display.display();
+            
+        }*/
     }
    
 }

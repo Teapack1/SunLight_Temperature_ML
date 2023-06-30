@@ -7,8 +7,8 @@ import base64
 
 
 CAPTURE_INTERVAL = 0.3
-total_samples = 30  # Total number of samples
-set_samples = 10  # Number of samples in each set
+total_samples = 1000  # Total number of samples
+set_samples = 100  # Number of samples in each set
 IMAGE_WIDTH = 240
 IMAGE_HEIGHT = 240
 IMAGE_FOLDER = "photos"
