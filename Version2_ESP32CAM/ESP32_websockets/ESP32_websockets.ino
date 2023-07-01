@@ -20,12 +20,12 @@
 
  // Counter for picture number
 unsigned int pictureCount = 0;
-
 const char* ssid = "Major"; //Enter SSID
 const char* password = "12345ABCDE"; //Enter Password
-const char* websockets_server_host = "10.0.0.225"; //Enter server address
+const char* websockets_server_host = "10.0.0.228"; //Enter server address
 const uint16_t websockets_server_port = 8765; // Enter server port
 
+int iter = 1;
 using namespace websockets;
 WebsocketsClient client;
 TwoWire I2CSensors = TwoWire(0);
@@ -37,6 +37,7 @@ void connect_server(const char* websockets_server_host, const uint16_t websocket
     Serial.println("Connecting to Websocket server.");
     // try to connect to Websockets server
     int i = 0;
+    
     display.clearDisplay();
     bool connected = false;
     while (!connected) {
@@ -46,7 +47,7 @@ void connect_server(const char* websockets_server_host, const uint16_t websocket
                         display.cp437(true);         // Use full 256 char 'Code Page 437' font
                         display.println(F("Connecting ot Server"));
                         char url[64];
-                        sprintf(url, websockets_server_host, websockets_server_port);
+                        sprintf(url, "%s:%d", websockets_server_host, websockets_server_port);
                         display.println(F(url));
                         display.display();
 
@@ -69,15 +70,11 @@ void connect_server(const char* websockets_server_host, const uint16_t websocket
               
                 display.setTextSize(2); // Draw 2X-scale text
                 display.setTextColor(SSD1306_WHITE);
-                display.setCursor(20, 30);
+                display.setCursor(10, 0);
                 display.println(F("Connected"));
                 display.display();      // Show initial text
-                delay(1000);
-              
-                // Scroll in various directions, pausing in-between:
 
-                display.startscrollleft(0x00, 0x0F);
-                delay(2000);
+                delay(500);
             
                               
         } else {
@@ -87,31 +84,47 @@ void connect_server(const char* websockets_server_host, const uint16_t websocket
     }
 }
 
+         //--------------WEBSOCKET EVENTS----------------
+                       
+              void onEventsCallback(WebsocketsEvent event, String data) {
+                  if(event == WebsocketsEvent::ConnectionOpened) {
+                      Serial.println("Connnection Opened");
+                  } else if(event == WebsocketsEvent::ConnectionClosed) {
+                      Serial.println("Connnection Closed");
+                  } else if(event == WebsocketsEvent::GotPing) {
+                      Serial.println("Got a Ping!");
+                  } else if(event == WebsocketsEvent::GotPong) {
+                      Serial.println("Got a Pong!");
+                  }
+              }
+
 
 void setup() {
   
     pinMode(TCS34725_LED_PIN, OUTPUT);
     digitalWrite(TCS34725_LED_PIN, LOW);
+    pinMode(button, INPUT);
+ 
     
     // Disable brownout detector
    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
       Serial.begin(115200);
      I2CSensors.begin(I2C_SDA, I2C_SCL);
 
-    //display init
+    //display initalisation
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }else{
     Serial.println("Display OK!");
     display.clearDisplay();
-    
     display.drawBitmap(0, 0, logo_bmp, SCREEN_WIDTH, SCREEN_HEIGHT, SSD1306_WHITE);
     display.display();
+    delay(2000);
  }
 
+ // int
   setup_led();
-  create_ap(false, ssid, password);
 
       // Initialize the camera
   Serial.print("Initializing the camera module...");
@@ -126,7 +139,7 @@ void setup() {
     while (1);
   }
 
-
+  
     // -------------------WEBSOCKET CALLBACK------------------------
     // This block of code is setting up a callback function that will be executed whenever a message is received from the WebSocket server.
       client.onMessage([&](WebsocketsMessage message){
@@ -141,6 +154,15 @@ void setup() {
   
       // If control_value recieved, setup the LED output
           if (message_type == "control_value") {
+            display.clearDisplay();
+               display.setTextSize(2);
+              display.setCursor(5, 5);
+             display.setTextColor(WHITE);
+              display.println(F("Gathering"));
+              display.setCursor(55, 30);
+              display.println(iter);
+             display.display();
+            
               // Handle control value here
               float control_value = data.toFloat();
                 std::pair<int, int> brightnesses = led_controller(control_value);
@@ -168,13 +190,7 @@ void setup() {
                           // Convert the image data to a base64 string
                           String base64Image = base64::encode((const uint8_t*)fb->buf, fb->len);
                           
-                          // Send the base64 image string over the WebSocket connection
-                          if(client.available()) {
-                              client.send("image:" + base64Image);
-                              Serial.println("Image sent to the server.");
-                          }
-                           esp_camera_fb_return(fb);
-                        
+                                                 
                         // Get RGBW values and send them over the WebSocket connection
                         uint16_t r, g, b, c, colorTemp, lux;
                         tcs.getRawData(&r, &g, &b, &c);
@@ -186,56 +202,56 @@ void setup() {
                           //  print_colors(colorTemp, lux, r, g, b, c); // output of the sensor
 
                         if(client.available()) {
+                             client.send("image:" + base64Image);
+                              Serial.println("Image sent to the server.");
+                              
                             String rgbw_values = String(r) + "," + String(g) + "," + String(b) + "," + String(c);
                             client.send("rgbw_values:" + rgbw_values);
                             String light_specs = String(colorTemp) + "," + String(lux);
                             client.send("light_specs:" + light_specs);
                             Serial.println("color data sent to the server.");
-                        }
+                            iter += 1;
+                   }
+                    esp_camera_fb_return(fb); 
                   
                   Serial.println("----------END--OF--THE--CALL----------");       
                   Serial.println(""); 
                     }
                 });
-
-         //--------------WEBSOCKET EVENTS----------------
-         
-          client.onEvent([](WebsocketsEvent event, String data) {
-              if(event == WebsocketsEvent::ConnectionOpened) {
-                  Serial.println("Connnection Opened");
-              } else if(event == WebsocketsEvent::ConnectionClosed) {
-                  Serial.println("Connnection Closed");
-              } else if(event == WebsocketsEvent::GotPing) {
-                  Serial.println("Got a Ping!");
-              } else if(event == WebsocketsEvent::GotPong) {
-                  Serial.println("Got a Pong!");
-              }
-          });
-          
-}
+          client.onEvent(onEventsCallback);
+          create_ap(false, ssid, password, display);   
+    }
 
 
 void loop() {
     // let the websockets client check for incoming messages
     if(client.available()) {
+     
         client.poll();
        delay(100);
-    } else {
+    } else {     
       connect_server(websockets_server_host, websockets_server_port);
-       delay(100);
-       display.stopscroll();
-       /*
-        while (Serial.read() != 5) {
+      delay(400);
+             display.clearDisplay();
+              display.setTextSize(2);   
+            display.setCursor(10, 0);
+        display.setTextColor(BLACK, WHITE);
+         display.println(F("Connected"));
 
-            display.setTextSize(1);      // Normal 1:1 pixel scale
-            display.setTextColor(SSD1306_WHITE); // Draw white text
-            display.setCursor(100, 40);
-            Serial.println(F("Press"));
-            display.setCursor(30, 50);
-            Serial.println(F("read:" + Serial.read()));
+               display.setTextSize(2);
+              display.setCursor(55, 35);
+             display.setTextColor(WHITE);
+            display.println(F("Touch!"));
             display.display();
-            
-        }*/
-    }
-   
+     
+        display.startscrollleft(0x00, 0x0F);        
+        delay(100); 
+     
+              while (digitalRead(button) == false) {
+                }
+         
+        display.stopscroll();
+        display.clearDisplay();
+     
+     }
 }

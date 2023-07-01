@@ -121,9 +121,11 @@ void setup_led(){
     ledcAttachPin(coldPin, LEDC_CHANNEL_1);
 }
 
-void create_ap(bool AP, const char* ssid, const char* pass){
+void create_ap(bool AP, const char* ssid, const char* pass, Adafruit_SSD1306& display){
 
   if (AP == true){
+
+
     Serial.println("Setting up AP...");
     WiFi.softAP(ssid, pass);
     
@@ -134,19 +136,72 @@ void create_ap(bool AP, const char* ssid, const char* pass){
     Serial.print("AP IP address: ");
     Serial.println(IP);
 
+        display.clearDisplay();
+        display.setTextSize(1);
+        display.setCursor(0, 0);
+        display.println("AP setup successfully!");
+        display.println("");
+        display.print("AP IP address: ");
+        display.println(IP);
+        display.display();
+    delay(500);
     
 } else if (AP == false){
+    display.clearDisplay();
     Serial.println("Connecting to AP...");
+        display.clearDisplay();
+        display.setTextSize(1);   
+      display.setCursor(0, 0);
+        display.setTextColor(BLACK, WHITE);
+     display.println(F("connecting to AP..."));
+    display.display();
+     
     WiFi.begin(ssid, pass);
-    
+    uint8_t idx = 0;
     while (WiFi.status() != WL_CONNECTED){
-      delay(500);     
+            if (idx<max(display.width(),display.height())/2){
+        idx+=2;
+      display.drawCircle(display.width()/2, display.height()/2, idx, SSD1306_WHITE);
+      display.display();
+      delay(1);
+      
+      } else if (idx>max(display.width(),display.height())/2){
+        idx-=2;
+      display.drawCircle(display.width()/2, display.height()/2, idx, SSD1306_WHITE);
+      display.display();
+      delay(1);
+      }
+      
+      delay(1000);     
       Serial.print(".");
-    }
+       
+   }
     Serial.println("");
     Serial.println("WiFi connected");
-    Serial.println("IP address: ");
+    Serial.println("Local IP address: ");
     Serial.println(WiFi.localIP());
+
+      for(uint8_t i=idx; i<max(display.width(),display.height())/2; i+=2) {
+        display.drawCircle(display.width()/2, display.height()/2, i, SSD1306_WHITE);
+        display.display();
+        delay(1);
+        idx = i;
+      }
+
+      for(uint8_t i=idx; i>0; i-=2) {
+      display.drawCircle(display.width()/2, display.height()/2, i, SSD1306_BLACK);
+      display.display();
+      delay(1);
+    }
+    
+        display.clearDisplay();
+        display.setTextSize(1);   
+      display.setCursor(0, 0);
+        display.setTextColor(WHITE);
+     display.println(F("WiFi Connected!"));
+     display.println(WiFi.localIP());
+    display.display();
+    delay(2000);   
  }
 }
 

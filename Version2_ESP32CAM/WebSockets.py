@@ -25,7 +25,6 @@ with open(DATA_FILE_NAME, 'w') as f:
 # Initialize an empty list to store control values
 control_values = []
 
-
 def control_value_generator():
     value = 0.0
     while True:
