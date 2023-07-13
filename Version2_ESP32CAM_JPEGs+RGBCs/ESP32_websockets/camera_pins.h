@@ -3,16 +3,13 @@
 #define I2C_SCL 15 // SCL Connected to GPIO 15
 
 //Pins
-#define LEDC_CHANNEL_0     LEDC_CHANNEL_0
-#define LEDC_CHANNEL_1     LEDC_CHANNEL_1
-#define LEDC_TIMER_13_BIT  13
+#define LEDC_CHANNEL_1     0
+#define LEDC_CHANNEL_2     1
+#define LEDC_TIMER_8_BIT  8
 #define LEDC_BASE_FREQ     5000
-#define warmPin 2
-#define coldPin 4
+#define warmPin 13
+#define coldPin 2
 #define button 12
-
-// TCS LED light
-#define TCS34725_LED_PIN 13
     
 //Camera
 #define PWDN_GPIO_NUM     32

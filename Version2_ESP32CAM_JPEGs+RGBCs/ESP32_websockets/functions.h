@@ -28,10 +28,10 @@ void configESPCamera() {
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG; // Choices are YUV422, GRAYSCALE, RGB565, JPEG
  
-  // Select lower framesize if the camera doesn't support PSRAM
+  // Select LOWer framesize if the camera doesn't support PSRAM
   if (psramFound()) {
     config.frame_size = FRAMESIZE_QVGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
-    config.jpeg_quality = 10; //10-63 lower number means higher quality
+    config.jpeg_quality = 10; //10-63 LOWer number means LOWer quality
     config.fb_count = 2;
   } else {
     config.frame_size = FRAMESIZE_QVGA;
@@ -113,12 +113,12 @@ std::pair<int, int> led_controller(float controlValue){
 
 void setup_led(){
     // Setup channel 0
-    ledcSetup(LEDC_CHANNEL_0, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
-    ledcAttachPin(warmPin, LEDC_CHANNEL_0);
+    ledcSetup(LEDC_CHANNEL_1, LEDC_BASE_FREQ, LEDC_TIMER_8_BIT);
+    ledcAttachPin(warmPin, LEDC_CHANNEL_1);
 
     // Setup channel 1
-    ledcSetup(LEDC_CHANNEL_1, LEDC_BASE_FREQ, LEDC_TIMER_13_BIT);
-    ledcAttachPin(coldPin, LEDC_CHANNEL_1);
+    ledcSetup(LEDC_CHANNEL_2, LEDC_BASE_FREQ, LEDC_TIMER_8_BIT);
+    ledcAttachPin(coldPin, LEDC_CHANNEL_2);
 }
 
 void create_ap(bool AP, const char* ssid, const char* pass, Adafruit_SSD1306& display){
@@ -147,8 +147,6 @@ void create_ap(bool AP, const char* ssid, const char* pass, Adafruit_SSD1306& di
     delay(500);
     
 } else if (AP == false){
-    display.clearDisplay();
-    Serial.println("Connecting to AP...");
         display.clearDisplay();
         display.setTextSize(1);   
       display.setCursor(0, 0);
@@ -213,4 +211,72 @@ void print_colors(int ct, int l, int r, int g, int b, int c){
     Serial.print("B: "); Serial.print(b, DEC); Serial.print(" ");
     Serial.print("C: "); Serial.print(c, DEC); Serial.print(" ");
     Serial.println(" ");
+}
+
+char* ip_setup(Adafruit_SSD1306& display, const int touchPin, const int longPressTime, const int acceptTime, const char* ip_prefix) {
+
+unsigned long lastBlinkTime = 0;
+unsigned long lastChangeTime = 0;
+int currentDigit = 0;
+bool blinkState = false;
+int digits[4] = {0, -1, -1, -1}; 
+
+static char websockets_server_host[16];
+
+int lastTouchState = LOW;
+  while (true) {
+    int touchState = digitalRead(touchPin);
+    if (touchState == HIGH && lastTouchState == LOW) {
+      lastChangeTime = millis();
+      digits[currentDigit]++;
+      if (digits[currentDigit] > 9) {
+        digits[currentDigit] = -1;
+      }
+    }
+    else if (touchState == HIGH && (millis() - lastChangeTime >= longPressTime)) {
+      lastChangeTime = millis();
+      currentDigit++;
+      if (currentDigit > 3) {
+        currentDigit = 0;
+      }
+    }
+    else if (millis() - lastChangeTime >= acceptTime) {
+      if (digits[1] == -1) {
+        sprintf(websockets_server_host, "%s%d", ip_prefix, digits[0]);
+      } else if (digits[2] == -1) {
+        sprintf(websockets_server_host, "%s%d%d", ip_prefix, digits[0], digits[1]);
+      } else {
+        sprintf(websockets_server_host, "%s%d%d%d", ip_prefix, digits[0], digits[1], digits[2]);
+      }
+      // websockets_server_host now contains the IP address
+      break;
+    }
+
+    // Display the current IP address on the screen
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(SSD1306_WHITE);
+    display.setCursor(0, 0);
+    display.println("Server IP:");
+    display.print(ip_prefix);
+    for (int i = 0; i < 3; i++) {
+      if (i == currentDigit && blinkState) {
+        display.print(" ");
+      } else if (digits[i] == -1) {
+        display.print(" ");
+      } else {
+        display.print(digits[i]);
+      }
+    }
+    display.display();
+
+    // Toggle blinkState every 500ms
+    if (millis() - lastBlinkTime >= 500) {
+      blinkState = !blinkState;
+      lastBlinkTime = millis();
+    }
+
+    lastTouchState = touchState;
+  }
+  return websockets_server_host;
 }

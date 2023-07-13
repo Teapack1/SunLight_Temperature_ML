@@ -20,10 +20,19 @@
 
  // Counter for picture number
 unsigned int pictureCount = 0;
-const char* ssid = "Major"; //Enter SSID
-const char* password = "12345ABCDE"; //Enter Password
-const char* websockets_server_host = "10.0.0.228"; //Enter server address
+const char* ssid = "mispot"; //Enter SSID
+const char* password = "heslo123"; //Enter Password
+const char* websockets_server_host;
+const char* ip_prefix = "192.168.4."; //IP address of server
+
 const uint16_t websockets_server_port = 8765; // Enter server port
+
+// setup IP
+const int longPressTime = 2000; // long press time in milliseconds
+const int acceptTime = 10000; // time to accept input in milliseconds
+unsigned long lastChangeTime = 0;
+int currentDigit = 0;
+int digits[3] = {0, 0, 0};
 
 int iter = 1;
 using namespace websockets;
@@ -35,6 +44,9 @@ Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_300MS, TCS347
 
 void connect_server(const char* websockets_server_host, const uint16_t websockets_server_port){
     Serial.println("Connecting to Websocket server.");
+    char message[50];
+    sprintf(message, "Connecting to IP address: %s", websockets_server_host);
+    Serial.println(message);
     // try to connect to Websockets server
     int i = 0;
     
@@ -101,10 +113,7 @@ void connect_server(const char* websockets_server_host, const uint16_t websocket
 
 void setup() {
   
-    pinMode(TCS34725_LED_PIN, OUTPUT);
-    digitalWrite(TCS34725_LED_PIN, LOW);
-    pinMode(button, INPUT);
- 
+   pinMode(button, INPUT);
     
     // Disable brownout detector
    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
@@ -122,10 +131,10 @@ void setup() {
     display.display();
     delay(2000);
  }
-
+    
  // int
   setup_led();
-
+  
       // Initialize the camera
   Serial.print("Initializing the camera module...");
   configESPCamera();
@@ -168,8 +177,8 @@ void setup() {
                 std::pair<int, int> brightnesses = led_controller(control_value);
                 int warmBrightness = brightnesses.first;
                 int coldBrightness = brightnesses.second;
-                ledcWrite(warmPin, warmBrightness);
-                 ledcWrite(coldPin, coldBrightness);
+                ledcWrite(LEDC_CHANNEL_1, warmBrightness);
+                 ledcWrite(LEDC_CHANNEL_2, coldBrightness);
                   Serial.print("Warm White level: ");
                   Serial.println(warmBrightness);
                   Serial.print("Cold White level: ");
@@ -219,7 +228,8 @@ void setup() {
                     }
                 });
           client.onEvent(onEventsCallback);
-          create_ap(false, ssid, password, display);   
+          create_ap(true, ssid, password, display);  // setup/connect to AP 
+          websockets_server_host = ip_setup(display, button, longPressTime, acceptTime, ip_prefix); //setup server IP
     }
 
 
