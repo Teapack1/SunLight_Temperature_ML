@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import os
 import base64
+import random
 
 
 CAPTURE_INTERVAL = 0.3
@@ -25,13 +26,19 @@ with open(DATA_FILE_NAME, 'w') as f:
 # Initialize an empty list to store control values
 control_values = []
 
+# def control_value_generator():
+#     value = 0.0
+#     while True:
+#         yield value
+#         value += 0.001
+#         if value > 1.0:
+#             value = 0.0
+
 def control_value_generator():
     value = 0.0
     while True:
         yield value
-        value += 0.001
-        if value > 1.0:
-            value = 0.0
+        value = random.uniform(0.0, 1.0)
 
 control_value_generator = control_value_generator()
 

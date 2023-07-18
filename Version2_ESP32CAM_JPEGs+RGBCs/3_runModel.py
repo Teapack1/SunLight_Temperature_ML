@@ -1,9 +1,9 @@
-from tensorflow.keras.models import load_model
-from tensorflow.keras.preprocessing.image import img_to_array, load_img
+from keras.models import load_model
+from keras.preprocessing.image import img_to_array, load_img
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.mo del_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 import os
 
