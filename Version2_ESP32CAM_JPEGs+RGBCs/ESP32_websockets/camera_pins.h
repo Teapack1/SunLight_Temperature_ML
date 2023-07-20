@@ -1,6 +1,4 @@
-//I2C
-#define I2C_SDA 14 // SDA Connected to GPIO 14
-#define I2C_SCL 15 // SCL Connected to GPIO 15
+
 
 //Pins
 #define LEDC_CHANNEL_1     0

@@ -18,6 +18,10 @@
 #include "camera_pins.h"
 #include "functions.h"
 
+//I2C
+#define I2C_SDA 14 // SDA Connected to GPIO 14
+#define I2C_SCL 15 // SCL Connected to GPIO 15
+
  // Counter for picture number
 unsigned int pictureCount = 0;
 const char* ssid = "mispot"; //Enter SSID
@@ -38,7 +42,7 @@ int iter = 1;
 using namespace websockets;
 WebsocketsClient client;
 TwoWire I2CSensors = TwoWire(0);
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &I2CSensors, OLED_RESET);
 Adafruit_TCS34725 tcs = Adafruit_TCS34725(TCS34725_INTEGRATIONTIME_300MS, TCS34725_GAIN_1X);
 
 
@@ -112,14 +116,16 @@ void connect_server(const char* websockets_server_host, const uint16_t websocket
 
 
 void setup() {
-  
-   pinMode(button, INPUT);
+    Serial.begin(115200);
+    I2CSensors.begin(I2C_SDA, I2C_SCL, 100000);
+     pinMode(button, INPUT);
     
     // Disable brownout detector
    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
-      Serial.begin(115200);
-     I2CSensors.begin(I2C_SDA, I2C_SCL);
+     
 
+     
+      
     //display initalisation
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
@@ -141,7 +147,7 @@ void setup() {
   Serial.println("Camera OK!");
 
   // Initialize the RGB sensor
-    if (tcs.begin()) {
+    if (tcs.begin(0x29, &I2CSensors)) {
     Serial.println("Color sensor OK!");
   } else {
     Serial.println("No TCS34725 found ... check your connections");
