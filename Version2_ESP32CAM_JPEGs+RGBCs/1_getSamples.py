@@ -8,44 +8,48 @@ import random
 
 
 CAPTURE_INTERVAL = 0.3
-total_samples = 1000  # Total number of samples
-set_samples = 100  # Number of samples in each set
+total_samples = 3000  # Total number of samples
+set_samples = 1000  # Number of samples in each set
 IMAGE_WIDTH = 240
 IMAGE_HEIGHT = 240
 IMAGE_FOLDER = "photos"
 DATA_FILE_NAME = "color_dataset.txt"
+global i_gl
+i_gl = 1
 
 # Create the photos folder if it doesn't exist
 if not os.path.exists(IMAGE_FOLDER):
     os.makedirs(IMAGE_FOLDER)
 
-# Create the text file
-with open(DATA_FILE_NAME, 'w') as f:
-    f.write("")
+# Create the text file if it doesn't exist
+if not os.path.exists(DATA_FILE_NAME):
+    with open(DATA_FILE_NAME, "w") as text_file:
+        text_file.write("")
 
 # Initialize an empty list to store control values
 control_values = []
-
-# def control_value_generator():
-#     value = 0.0
-#     while True:
-#         yield value
-#         value += 0.001
-#         if value > 1.0:
-#             value = 0.0
 
 def control_value_generator():
     value = 0.0
     while True:
         yield value
-        value = random.uniform(0.0, 1.0)
+        value += 0.001
+        if value > 1.0:
+            value = 0.0
+
+# def control_value_generator():
+#     value = 0.0
+#     while True:
+#         yield value
+#         value = random.uniform(0.0, 1.0)
 
 control_value_generator = control_value_generator()
 
-async def hello(websocket, path):
-
-
-    for i in range(1, total_samples + 1):
+async def hello(websocket):
+    global i_gl
+    for i in range(i_gl, total_samples + 1):
+        i_gl = i
+        print(i_gl)
         control_value = next(control_value_generator)
         await websocket.send(f"control_value:{control_value:.3f}")
 
