@@ -27,17 +27,13 @@ void configESPCamera() {
   config.pin_reset = RESET_GPIO_NUM;
   config.xclk_freq_hz = 20000000;
   config.pixel_format = PIXFORMAT_JPEG; // Choices are YUV422, GRAYSCALE, RGB565, JPEG
+
  
-  // Select LOWer framesize if the camera doesn't support PSRAM
-  if (psramFound()) {
-    config.frame_size = FRAMESIZE_VGA; // FRAMESIZE_ + QVGA|CIF|VGA|SVGA|XGA|SXGA|UXGA
-    config.jpeg_quality = 6; //10-63 LOWer number means LOWer quality
-    config.fb_count = 1;
-  } else {
     config.frame_size = FRAMESIZE_QVGA;
-    config.jpeg_quality = 6;
-    config.fb_count = 1;
-  }
+    config.jpeg_quality = 12;//0-63, for OV series camera sensors, lower number means higher quality
+    config.fb_count = 2;//When jpeg mode is used, if fb_count more than one, the driver will work in continuous mode.
+    config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;//CAMERA_GRAB_LATEST. Sets when buffers should be filled
+ 
  
   // Initialize the Camera
   esp_err_t err = esp_camera_init(&config);
