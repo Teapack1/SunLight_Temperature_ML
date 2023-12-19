@@ -12,7 +12,7 @@ total_samples = 3000  # Total number of samples
 set_samples = 1000  # Number of samples in each set
 IMAGE_WIDTH = 240
 IMAGE_HEIGHT = 240
-IMAGE_FOLDER = "photos"
+IMAGE_FOLDER = "PHOT"
 DATA_FILE_NAME = "color_dataset.txt"
 global i_gl
 i_gl = 1

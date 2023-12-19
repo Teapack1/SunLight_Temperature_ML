@@ -3,15 +3,13 @@ from keras.preprocessing.image import img_to_array, load_img
 import joblib
 import numpy as np
 import pandas as pd
-from sklearn.mo del_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
 import os
 
 # Load the saved model
-model = load_model('model.h5')
+model = load_model('model_020.keras')
 
 # Load the saved scaler
-scaler = joblib.load('scaler.save')
+scaler = joblib.load('dataset20_scaler.pkl')
 
 # Load the RGBW and target values
 data = pd.read_csv('color_dataset.txt', header=None)
