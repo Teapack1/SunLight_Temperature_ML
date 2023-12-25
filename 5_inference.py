@@ -8,7 +8,11 @@ import joblib
 import tflite_runtime.interpreter as tflite
 import time
 
+<<<<<<< HEAD
 MODEL = os.path.join('MODEL', 'color_model.tflite')
+=======
+MODEL = os.path.join('MODEL', 'color_model.keras')
+>>>>>>> origin/HEAD
 SCALER = os.path.join('MODEL', 'color_scaler.pkl')
 CAPTURE_INTERVAL = 2 #s
 
@@ -26,6 +30,10 @@ async def run_prediction(websocket):
     while True:
         rgbw_values_received = False
         while not rgbw_values_received:
+<<<<<<< HEAD
+=======
+            
+>>>>>>> origin/HEAD
             message = await websocket.recv()
             message_type, data = message.split(':', 1)
 
@@ -35,6 +43,7 @@ async def run_prediction(websocket):
                 if len(rgbw_values) != 4:
                     print("Invalid data received. Skipping capture.")
                     continue
+<<<<<<< HEAD
                 
                 try:
                     rgbw_array = np.array(rgbw_values, dtype=float).reshape(1, -1)  # Convert to numpy array and reshape
@@ -56,6 +65,21 @@ async def run_prediction(websocket):
                     print(f"Error processing the value: {e}")
                 
                 time.sleep(CAPTURE_INTERVAL)    # Prediction pause
+=======
+
+                rgbw_array = np.array(rgbw_values, dtype=float).reshape(1, -1)  # Convert to numpy array and reshape
+                rgbw_scaled = scaler.transform(rgbw_array)
+                rgbw_values_received = True
+                
+                predicted_control_value = model.predict(rgbw_scaled)
+                await websocket.send(f"control_value:{predicted_control_value[0][0]:.3f}")
+                print(f"Control value sent: {predicted_control_value}")
+
+        print(
+            f"Capturing frame with color values: {rgbw_values}, predicted control value: {predicted_control_value[0][0]:.3f}")
+
+        time.sleep(CAPTURE_INTERVAL)    # Prediction pause
+>>>>>>> origin/HEAD
     
 async def main():
     async with websockets.serve(run_prediction, "0.0.0.0", 8765):
