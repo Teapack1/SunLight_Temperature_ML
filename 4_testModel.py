@@ -6,10 +6,10 @@ import pandas as pd
 import os
 
 # Load the saved model
-model = load_model('model_020.keras')
+model = load_model('MODEL\\model_020.keras')
 
 # Load the saved scaler
-scaler = joblib.load('dataset20_scaler.pkl')
+scaler = joblib.load('MODEL\\dataset20_scaler.pkl')
 
 # Load the RGBW and target values
 data = pd.read_csv('color_dataset.txt', header=None)
